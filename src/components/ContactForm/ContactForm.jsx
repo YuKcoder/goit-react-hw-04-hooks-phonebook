@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import { LabelInput } from './ContactForm.styled';
 import Button from '../Button';
@@ -20,49 +20,44 @@ const validationSchema = Yup.object({
     .required('Please enter your phone number, it is required'),
 });
 
-export default class ContactForm extends Component {
-  state = {
-    name: '',
-    number: '',
+export default function ContactForm({ submit }) {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+
+  const handleContactInput = values => {
+    setName(values.name);
+    setNumber(values.number);
   };
 
-  handleContactInput = ({ name, number }) => {
-    this.setState({ name, number });
-  };
+  return (
+    <Formik
+      enableReinitialize
+      initialValues={{ name, number }}
+      validationSchema={validationSchema}
+      onSubmit={(values, { setSubmitting }) => {
+        handleContactInput(values);
+        submit(values);
+        handleContactInput({ name: '', number: '' });
+        setSubmitting(false);
+      }}
+    >
+      <Form autoComplete="off">
+        <LabelInput>
+          Name
+          <Field type="text" name="name" />
+          <ErrorMessage name="name" />
+        </LabelInput>
 
-  render() {
-    const { name, number } = this.state;
+        <LabelInput>
+          Number
+          <Field type="tel" name="number" />
+          <ErrorMessage name="number" />
+        </LabelInput>
 
-    return (
-      <Formik
-        enableReinitialize
-        initialValues={{ name, number }}
-        validationSchema={validationSchema}
-        onSubmit={(values, { setSubmitting }) => {
-          this.handleContactInput(values);
-          this.props.submit(values);
-          this.handleContactInput({ name: '', number: '' });
-          setSubmitting(false);
-        }}
-      >
-        <Form autoComplete="off">
-          <LabelInput>
-            Name
-            <Field type="text" name="name" />
-            <ErrorMessage name="name" />
-          </LabelInput>
-
-          <LabelInput>
-            Number
-            <Field type="tel" name="number" />
-            <ErrorMessage name="number" />
-          </LabelInput>
-
-          <Button type="submit">Submit</Button>
-        </Form>
-      </Formik>
-    );
-  }
+        <Button type="submit">Submit</Button>
+      </Form>
+    </Formik>
+  );
 }
 
 ContactForm.propTypes = {
